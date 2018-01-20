@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-I.
 
-make: clientrun.o
-	$(CC) -o clientfunc.c clientrun.c -I.
+make:
+	$(CC) clientfunc.c clientrun.c -o client
 
 clean:
-	rm -f clientrun.o
+	rm -f client
