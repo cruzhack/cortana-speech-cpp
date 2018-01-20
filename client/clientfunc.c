@@ -18,9 +18,11 @@ int convert_to_object(void)
 {
     return -1;
 }
-//pass in a curl to perform a request and return the response to res
-int post_request(CURL *curl, CURLcode response, char * url, char * post_data)
+//perform a request and return the response to res
+int post_request(CURLcode response, char * url, char * post_data)
 {
+    CURL *curl;
+    curl = curl_easy_init();
     if (!curl)
     {
         return INVALID_CURL;
@@ -40,4 +42,14 @@ int post_request(CURL *curl, CURLcode response, char * url, char * post_data)
     /* always cleanup */ 
     curl_easy_cleanup(curl);
     return SUCCESS;
+}
+//composes post request into a character array and returns the output size
+int compose_request(void)
+{
+    char * out = (char*)malloc(1024*(sizeof(char)));
+    strcat(out, POST);
+    strcat(out, end);
+    printf("%s %zu \n",out, sizeof(key_name));
+    free(out);
+    return -1;
 }

@@ -6,3 +6,6 @@ make:
 
 clean:
 	rm -f client
+
+debug:
+	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all ./client 
