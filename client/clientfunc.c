@@ -1,29 +1,6 @@
 /*clientfunc.c
 here client functions are implmented*/
 #include "client.h"
-static curlioerr my_ioctl(CURL *handle, curliocmd cmd, void *userp)
-{
-
-    int *fdp = (int *)userp;
-    int fd = *fdp;
-
-    (void)handle; /* not used in here */
-
-    switch (cmd)
-    {
-    case CURLIOCMD_RESTARTREAD:
-        /* mr libcurl kindly asks as to rewind the read data stream to start */
-        if (-1 == lseek(fd, 0, SEEK_SET))
-            /* couldn't rewind */
-            return CURLIOE_FAILRESTART;
-
-        break;
-
-    default: /* ignore unknown commands */
-        return CURLIOE_UNKNOWNCMD;
-    }
-    return CURLIOE_OK; /* success! */
-}
 
 int recieve_audio_object(void)
 {
@@ -40,4 +17,27 @@ int convert_string(void)
 int convert_to_object(void)
 {
     return -1;
+}
+//pass in a curl to perform a request and return the response to res
+int post_request(CURL *curl, CURLcode response, char * url, char * post_data)
+{
+    if (!curl)
+    {
+        return INVALID_CURL;
+    }
+    //POST url
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    //POST data
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
+ 
+    response = curl_easy_perform(curl);
+    //response error 
+    if(response != CURLE_OK){
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(response));
+        return RESPONSE_ERROR;
+    }
+    /* always cleanup */ 
+    curl_easy_cleanup(curl);
+    return SUCCESS;
 }
