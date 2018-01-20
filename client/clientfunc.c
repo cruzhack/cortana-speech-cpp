@@ -47,9 +47,13 @@ int post_request(CURLcode response, char * url, char * post_data)
 int compose_request(void)
 {
     char * out = (char*)malloc(1024*(sizeof(char)));
-    strcat(out, POST);
-    strcat(out, end);
-    printf("%s %zu \n",out, sizeof(key_name));
+    strcat(out, ACCEPT);
+    strcat(out, CONTENT_TYPE);
+    strcat(out, KEY1);
+    strcat(out, HOST);
+    strcat(out, TRANSFER);
+    strcat(out, EXPECT);
+    printf("%s\n",out);
     free(out);
     return -1;
 }

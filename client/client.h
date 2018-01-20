@@ -10,14 +10,14 @@
 #include <sys/stat.h>
 #include <curl/curl.h>
 
-#define POST "POST: "
 #define end "\0"
-#define key_name "Ocp-Apim-Subscription-Key"
-#define key1 "1f3639ec9c8c412297d971b87d44890a"
-#define key2 "37645043a2a147eaa0d8ee6b7d0cfc29"
-#define content_type "audio/wav; codec=audio/pcm; samplerate=16000"
-#define host "speech.platform.bing.com"
-#define accept "application/json;text/xml"
+#define ACCEPT "Accept: application/json;text/xml"
+#define KEY1 " Ocp-Apim-Subscription-Key 1f3639ec9c8c412297d971b87d44890a"
+#define KEY2 "37645043a2a147eaa0d8ee6b7d0cfc29"
+#define CONTENT_TYPE "Content-Type: audio/wav; codec=audio/pcm; samplerate=16000 "
+#define HOST " Host: speech.platform.bing.com"
+#define TRANSFER " Transfer-Encoding: chunked"
+#define EXPECT " Expect: 100-continue"
 #define uri "https://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1?language=en-US";
 
 #define SUCCESS 0
