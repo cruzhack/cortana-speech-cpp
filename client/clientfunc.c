@@ -43,10 +43,28 @@ int post_request(CURLcode response, char * url, char * post_data)
     curl_easy_cleanup(curl);
     return SUCCESS;
 }
-//composes post request into a character array and returns the output size
-int compose_request(void)
+//http get request
+int get_request(CURLcode response)
 {
-    char * out = (char*)malloc(1024*(sizeof(char)));
+    CURL *curl;
+    curl = curl_easy_init();
+    if (!curl){
+        return INVALID_CURL;
+    }
+    curl_easy_setopt(curl, CURLOPT_URL, URI);
+    response = curl_easy_perform(curl);
+    if(response != CURLE_OK){
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(response));
+        return RESPONSE_ERROR;
+    }
+    return SUCCESS;
+}
+
+//composes post request into a character array and returns the output size
+int compose_request(char * out)
+{
+    out = (char*)malloc(1024*(sizeof(char)));
     strcat(out, ACCEPT);
     strcat(out, CONTENT_TYPE);
     strcat(out, KEY1);
@@ -54,6 +72,9 @@ int compose_request(void)
     strcat(out, TRANSFER);
     strcat(out, EXPECT);
     printf("%s\n",out);
+    char *cpout = out;
     free(out);
-    return -1;
+    return cpout; 
+    //free(out);
+    //return -1;
 }

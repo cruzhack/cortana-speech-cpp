@@ -18,7 +18,7 @@
 #define HOST " Host: speech.platform.bing.com"
 #define TRANSFER " Transfer-Encoding: chunked"
 #define EXPECT " Expect: 100-continue"
-#define uri "https://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1?language=en-US";
+#define URI "https://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1?language=en-US"
 
 #define SUCCESS 0
 #define RECIEVE_ERROR 2
@@ -35,6 +35,7 @@ char *out_message;
 int recieve_audio_object(void);
 int send_audio(void);
 int post_request(CURLcode response, char * url, char * post_data);
+int get_request(CURLcode response);
 int compose_request(void);
 
 
