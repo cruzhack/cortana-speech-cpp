@@ -3,5 +3,4 @@
 
 int main(){
     printf("client called\n");
-    return(1);
 }
