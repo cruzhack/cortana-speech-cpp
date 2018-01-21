@@ -27,17 +27,10 @@
 #define INVALID_CURL 5
 #define RESPONSE_ERROR 6
 
-
-char *response;
-
-char *out_message;
-
 int recieve_audio_object(void);
 int send_audio(void);
-int post_request(CURLcode response, char * url, char * post_data);
-int get_request(CURLcode response);
-int compose_request(void);
-
-
+CURLcode post_request(char *url, char *post_data);
+CURLcode get_request();
+int compose_request(char *out);
 
 #endif
