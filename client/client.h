@@ -36,6 +36,7 @@ typedef enum RecognitionModeEnum RecognitionMode;
 // char** getKeywords(RecognitionMode mode, FILE* file);
 
 char* get_raw_data(char* filename);
-void post(char* data);
+CURLcode get();
+CURLcode post(char* data);
 
 #endif

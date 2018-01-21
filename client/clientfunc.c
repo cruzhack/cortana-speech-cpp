@@ -10,13 +10,28 @@ struct WriteThis {
     size_t sizeleft;
 };
 
-void cleanup(CURL* curl){
+struct string {
+  char *ptr;
+  size_t len;
+};
+
+static void init_string(struct string *s) {
+  s->len = 0;
+  s->ptr = malloc(s->len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "malloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  s->ptr[0] = '\0';
+}
+
+static void cleanup(CURL* curl){
     if(curl != NULL) curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
 
 //http get request
-CURLcode get_request()
+CURLcode get()
 {
     CURLcode response;
     CURL *curl;
@@ -35,45 +50,45 @@ CURLcode get_request()
     return response;
 }
 
-//composes post request into a character array and returns the output size
-int compose_request(char *out)
+static size_t write_callback(void *ptr, size_t size, size_t nmemb, struct string *s)
 {
-    int size = sizeof(ACCEPT) + sizeof(CONTENT_TYPE) + sizeof(KEY1) + sizeof(HOST) + sizeof(TRANSFER) + sizeof(EXPECT);
-    strcat(out, ACCEPT);
-    strcat(out, CONTENT_TYPE);
-    strcat(out, KEY1);
-    strcat(out, HOST);
-    strcat(out, TRANSFER);
-    strcat(out, EXPECT);
-    char * end_null = out + size;
-    end_null = '\0';
-    //printf("%s\n", out);
-    return size;
+  size_t new_len = s->len + size*nmemb;
+  s->ptr = realloc(s->ptr, new_len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "realloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  memcpy(s->ptr+s->len, ptr, size*nmemb);
+  s->ptr[new_len] = '\0';
+  s->len = new_len;
+
+  return size*nmemb;
 }
 
 static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
 {
-  struct WriteThis *wt = (struct WriteThis *)userp;
-  size_t buffer_size = size*nmemb;
+    printf("\n\n\n READ CALLBACK \n\n\n");
+    struct WriteThis *wt = (struct WriteThis *)userp;
+    size_t buffer_size = size*nmemb;
  
-  if(wt->sizeleft) {
-    /* copy as much as possible from the source to the destination */ 
-    size_t copy_this_much = wt->sizeleft;
-    if(copy_this_much > buffer_size)
-      copy_this_much = buffer_size;
-    memcpy(dest, wt->readptr, copy_this_much);
-    for(int i = 0; i < copy_this_much; i++){
-        printf("%c", wt->readptr[i]);
+    if(wt->sizeleft) {
+        /* copy as much as possible from the source to the destination */ 
+        size_t copy_this_much = wt->sizeleft;
+        if(copy_this_much > buffer_size)
+        copy_this_much = buffer_size;
+        memcpy(dest, wt->readptr, copy_this_much);
+        for(int i = 0; i < copy_this_much; i++){
+            printf("%c", wt->readptr[i]);
+        }
+        wt->readptr += copy_this_much;
+        wt->sizeleft -= copy_this_much;
+        return copy_this_much; /* we copied this many bytes */ 
     }
-    wt->readptr += copy_this_much;
-    wt->sizeleft -= copy_this_much;
-    return copy_this_much; /* we copied this many bytes */ 
-  }
- 
-  return 0; /* no more data left to deliver */ 
+    
+    return 0; /* no more data left to deliver */ 
 }
 
-void post(char* data) {
+CURLcode post(char* data) {
     CURL *curl;
     CURLcode res; 
     struct WriteThis wt;
@@ -85,16 +100,13 @@ void post(char* data) {
     res = curl_global_init(CURL_GLOBAL_DEFAULT);
     /* Check for errors */ 
     if(res != CURLE_OK) {
-        fprintf(stderr, "curl_global_init() failed: %s\n",
-        curl_easy_strerror(res));
-        return cleanup(curl);
+        fprintf(stderr, "curl_global_init() failed: %s\n", curl_easy_strerror(res));
     }
     
     /* get a curl handle */ 
     curl = curl_easy_init();
     if(!curl) {
-        fprintf(stderr, "curl_easy_init() failed");
-        return cleanup(curl);
+        fprintf(stderr, "curl_easy_init() failed: %s\n", curl_easy_strerror(res));
     }
     /* First set the URL that is about to receive our POST. */ 
     curl_easy_setopt(curl, CURLOPT_URL, URI);
@@ -105,11 +117,18 @@ void post(char* data) {
     /* we want to use our own read function */ 
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
 
+    struct string s;
+    init_string(&s);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+
     /* pointer to pass to our read function */ 
     curl_easy_setopt(curl, CURLOPT_READDATA, &wt);
 
     /* get verbose debug output please */ 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); 
 
     /**
      * Set Headers
@@ -124,19 +143,20 @@ void post(char* data) {
     chunk = curl_slist_append(chunk, KEY1);
 
     res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    printf("RESPONSE: %s\nEND RESPONSE\n", s.ptr);
+    free(s.ptr);
 
     /* Perform the request, res will get the return code */ 
     res = curl_easy_perform(curl);
     /* Check for errors */ 
     if(res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-        curl_easy_strerror(res));
-        return cleanup(curl);
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
-
 
     /* always cleanup */ 
     cleanup(curl);
+
+    return res;
 }
 
 char* get_raw_data(char* filename) {
