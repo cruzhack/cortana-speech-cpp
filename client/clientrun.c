@@ -28,5 +28,9 @@ int main(void)
     // curl_global_cleanup();
 
     get_raw_data("file");
+    char * req = (char *)malloc(1024 * sizeof(char));
+    int req_size = compose_request(req);
+    printf("returned req \n%s\n", req);
+    free (req);
     return 0;
 }

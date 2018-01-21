@@ -40,10 +40,10 @@ int compose_request(char *out)
     strcat(out, HOST);
     strcat(out, TRANSFER);
     strcat(out, EXPECT);
-    printf("%s\n", out);
+    char * end_null = out + size;
+    end_null = '\0';
+    //printf("%s\n", out);
     return size;
-    //free(out);
-    //return -1;
 }
 
 static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
@@ -81,7 +81,6 @@ void post(char* data) {
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_global_init() failed: %s\n",
                 curl_easy_strerror(res));
-        return 1;
     }
     
     /* get a curl handle */ 
@@ -128,7 +127,6 @@ void post(char* data) {
         curl_easy_cleanup(curl);
     }
     curl_global_cleanup();
-    return 0;
 }
 
 char* get_raw_data(char* filename) {
