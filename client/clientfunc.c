@@ -90,31 +90,25 @@ char* get_raw_data(char* filename) {
     if(fp == NULL) return NULL;
 
     // Get File size
-    char b = getc(fp);
     fseek(fp, 0, SEEK_END);
     int size = ftell(fp);
-    printf("Size of file is %d\n", size);
-    char bytes[size + 1];
+    char* bytes = (char*) malloc(size + 1);
+
+    // Reset file pointer
+    fclose(fp);
+    fp = fopen(filename, "r");
     
     // Read File
-    // fread(bytes, 1, sizeof bytes, fp);
-    // fclose(fp);
-    // bytes[size] = '\0';
-    size_t nread;
-    while ((nread = fread(bytes, 1, sizeof bytes, fp)) > 0)
-        fwrite(bytes, 1, nread, stdout);
-    if (ferror(fp)) {
-        /* deal with error */
+    char b = fgetc(fp);
+    int i = 0;
+    while(b != EOF) {
+        bytes[i++] = b;
+        b = fgetc(fp);
     }
+    bytes[i] = '\0';
     fclose(fp);
 
-    //Print Result
+
     printf("Got raw data as %s\n", bytes);
-    for(int i = 0; i < size + 1; i++) {
-        printf("%d ", bytes[i]);
-    }
-    printf("\n");
-
-
     return bytes;
 }
