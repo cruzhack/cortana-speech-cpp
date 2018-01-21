@@ -101,17 +101,18 @@ void post(char* data) {
         /* get verbose debug output please */ 
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     
-        /*
-        If you use POST to a HTTP 1.1 server, you can send data without knowing
-        the size before starting the POST if you use chunked encoding. You
-        enable this by adding a header like "Transfer-Encoding: chunked" with
-        CURLOPT_HTTPHEADER. With HTTP 1.0 or without chunked transfer, you must
-        specify the size in the request.
-        */ 
-    
+        /**
+         * Set Headers
+         */
+
         struct curl_slist *chunk = NULL;
     
         chunk = curl_slist_append(chunk, TRANSFER);
+        chunk = curl_slist_append(chunk, CONTENT_TYPE);
+        chunk = curl_slist_append(chunk, ACCEPT);
+        chunk = curl_slist_append(chunk, EXPECT);
+        chunk = curl_slist_append(chunk, KEY1);
+
         res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
         /* use curl_slist_free_all() after the *perform() call to free this
             list again */ 

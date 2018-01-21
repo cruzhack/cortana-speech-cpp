@@ -11,7 +11,7 @@
 
 #define end "\0"
 #define ACCEPT "Accept: application/json;text/xml"
-#define KEY1 " Ocp-Apim-Subscription-Key 1f3639ec9c8c412297d971b87d44890a"
+#define KEY1 " Ocp-Apim-Subscription-Key: 1f3639ec9c8c412297d971b87d44890a"
 #define KEY2 "37645043a2a147eaa0d8ee6b7d0cfc29"
 #define CONTENT_TYPE "Content-Type: audio/wav; codec=audio/pcm; samplerate=16000 "
 #define HOST " Host: speech.platform.bing.com"
