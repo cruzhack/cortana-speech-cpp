@@ -67,7 +67,6 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, struct string
 
 static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
 {
-    printf("\n\n\n READ CALLBACK \n\n\n");
     struct WriteThis *wt = (struct WriteThis *)userp;
     size_t buffer_size = size*nmemb;
  
@@ -77,9 +76,6 @@ static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
         if(copy_this_much > buffer_size)
         copy_this_much = buffer_size;
         memcpy(dest, wt->readptr, copy_this_much);
-        for(int i = 0; i < copy_this_much; i++){
-            printf("%c", wt->readptr[i]);
-        }
         wt->readptr += copy_this_much;
         wt->sizeleft -= copy_this_much;
         return copy_this_much; /* we copied this many bytes */ 
@@ -88,13 +84,14 @@ static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
     return 0; /* no more data left to deliver */ 
 }
 
-CURLcode post(char* data) {
+char* post(char* data, int size) {
     CURL *curl;
     CURLcode res; 
+
     struct WriteThis wt;
     
     wt.readptr = data;
-    wt.sizeleft = strlen(data);
+    wt.sizeleft = size;
     
     /* In windows, this will init the winsock stuff */ 
     res = curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -108,6 +105,7 @@ CURLcode post(char* data) {
     if(!curl) {
         fprintf(stderr, "curl_easy_init() failed: %s\n", curl_easy_strerror(res));
     }
+
     /* First set the URL that is about to receive our POST. */ 
     curl_easy_setopt(curl, CURLOPT_URL, URI);
 
@@ -128,7 +126,7 @@ CURLcode post(char* data) {
     /* get verbose debug output please */ 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); 
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, size); 
 
     /**
      * Set Headers
@@ -143,8 +141,7 @@ CURLcode post(char* data) {
     chunk = curl_slist_append(chunk, KEY1);
 
     res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-    printf("RESPONSE: %s\nEND RESPONSE\n", s.ptr);
-    free(s.ptr);
+
 
     /* Perform the request, res will get the return code */ 
     res = curl_easy_perform(curl);
@@ -155,34 +152,32 @@ CURLcode post(char* data) {
 
     /* always cleanup */ 
     cleanup(curl);
-
-    return res;
+    return s.ptr;
 }
 
-char* get_raw_data(char* filename) {
-    FILE* fp = fopen(filename, "r");
-    if(fp == NULL) return NULL;
+char* get_raw_data(char* filename, int* size) {
+    FILE *fp;
+    long lSize;
+    char *buffer;
 
-    // Get File size
-    fseek(fp, 0, SEEK_END);
-    int size = ftell(fp);
-    char* bytes = (char*) malloc(size + 1);
+    fp = fopen ( filename , "rb" );
+    if( !fp ) perror(filename),exit(1);
 
-    // Reset file pointer
+    fseek( fp , 0L , SEEK_END);
+    lSize = ftell( fp );
+    *size = lSize;
+    rewind( fp );
+
+    /* allocate memory for entire content */
+    buffer = calloc( 1, lSize+1 );
+    if( !buffer ) fclose(fp),fputs("memory alloc fails",stderr),exit(1);
+
+    /* copy the file into the buffer */
+    if( 1!=fread( buffer , lSize, 1 , fp) )
+    fclose(fp),free(buffer),fputs("entire read fails",stderr),exit(1);
+
+    /* do your work here, buffer is a string contains the whole text */
+
     fclose(fp);
-    fp = fopen(filename, "r");
-    
-    // Read File
-    char b = fgetc(fp);
-    int i = 0;
-    while(b != EOF) {
-        bytes[i++] = b;
-        b = fgetc(fp);
-    }
-    bytes[i] = '\0';
-    fclose(fp);
-
-
-    printf("Got raw data as %s\n", bytes);
-    return bytes;
+    return buffer;
 }

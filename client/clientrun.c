@@ -27,9 +27,12 @@ int main(void)
     // //post_request(curl, res, output);
     // curl_global_cleanup();
 
-    char* data = get_raw_data("HelloWorld.wav");
-    post(data);
-    
+    int size;
+    char* data = get_raw_data("HelloWorld.wav", &size);
+    char* response = post(data, size);
+    printf("Got response: %s\n", response);
+    free(response);
+
     // char * req = (char *)malloc(1024 * sizeof(char));
     // int req_size = compose_request(req);
     // printf("returned req \n%s\n", req);

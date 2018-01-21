@@ -33,10 +33,9 @@ enum RecognitionModeEnum {Interactive, Conversation, Dictation};
 typedef enum RecognitionModeEnum RecognitionMode;
 
 
-// char** getKeywords(RecognitionMode mode, FILE* file);
+char* get_raw_data(char* filename, int* size);
 
-char* get_raw_data(char* filename);
 CURLcode get();
-CURLcode post(char* data);
+char* post(char* data, int size);
 
 #endif
