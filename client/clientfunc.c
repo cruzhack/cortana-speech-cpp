@@ -1,6 +1,9 @@
 /*clientfunc.c
 here client functions are implmented*/
 #include "client.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int recieve_audio_object(void)
 {
@@ -79,4 +82,39 @@ int compose_request(char *out)
     return size;
     //free(out);
     //return -1;
+}
+
+
+char* get_raw_data(char* filename) {
+    FILE* fp = fopen(filename, "r");
+    if(fp == NULL) return NULL;
+
+    // Get File size
+    char b = getc(fp);
+    fseek(fp, 0, SEEK_END);
+    int size = ftell(fp);
+    printf("Size of file is %d\n", size);
+    char bytes[size + 1];
+    
+    // Read File
+    // fread(bytes, 1, sizeof bytes, fp);
+    // fclose(fp);
+    // bytes[size] = '\0';
+    size_t nread;
+    while ((nread = fread(bytes, 1, sizeof bytes, fp)) > 0)
+        fwrite(bytes, 1, nread, stdout);
+    if (ferror(fp)) {
+        /* deal with error */
+    }
+    fclose(fp);
+
+    //Print Result
+    printf("Got raw data as %s\n", bytes);
+    for(int i = 0; i < size + 1; i++) {
+        printf("%d ", bytes[i]);
+    }
+    printf("\n");
+
+
+    return bytes;
 }

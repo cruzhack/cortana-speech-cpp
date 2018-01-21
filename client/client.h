@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,5 +31,12 @@ int send_audio(void);
 CURLcode post_request(char *url, char *post_data);
 CURLcode get_request();
 int compose_request(char *out);
+enum RecognitionModeEnum {Interactive, Conversation, Dictation};
+typedef enum RecognitionModeEnum RecognitionMode;
+
+
+// char** getKeywords(RecognitionMode mode, FILE* file);
+
+char* get_raw_data(char* filename);
 
 #endif
