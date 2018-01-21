@@ -26,11 +26,11 @@
 #define INVALID_CURL 5
 #define RESPONSE_ERROR 6
 
-int recieve_audio_object(void);
-int send_audio(void);
+
 CURLcode post_request(char *url, char *post_data);
 CURLcode get_request();
 int compose_request(char *out);
+
 enum RecognitionModeEnum {Interactive, Conversation, Dictation};
 typedef enum RecognitionModeEnum RecognitionMode;
 
