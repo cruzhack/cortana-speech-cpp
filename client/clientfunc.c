@@ -10,6 +10,11 @@ struct WriteThis {
     size_t sizeleft;
 };
 
+void cleanup(CURL* curl){
+    if(curl != null) curl_easy_cleanup(curl);
+    curl_global_cleanup();
+}
+
 //http get request
 CURLcode get_request()
 {
@@ -57,7 +62,9 @@ static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
     if(copy_this_much > buffer_size)
       copy_this_much = buffer_size;
     memcpy(dest, wt->readptr, copy_this_much);
- 
+    for(int i = 0; i < copy_this_much; i++){
+        printf("%c", wt->readptr[i]);
+    }
     wt->readptr += copy_this_much;
     wt->sizeleft -= copy_this_much;
     return copy_this_much; /* we copied this many bytes */ 
@@ -68,8 +75,7 @@ static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
 
 void post(char* data) {
     CURL *curl;
-    CURLcode res;
- 
+    CURLcode res; 
     struct WriteThis wt;
     
     wt.readptr = data;
@@ -80,54 +86,57 @@ void post(char* data) {
     /* Check for errors */ 
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_global_init() failed: %s\n",
-                curl_easy_strerror(res));
+        curl_easy_strerror(res));
+        return cleanup(curl);
     }
     
     /* get a curl handle */ 
     curl = curl_easy_init();
-    if(curl) {
-        /* First set the URL that is about to receive our POST. */ 
-        curl_easy_setopt(curl, CURLOPT_URL, URI);
-    
-        /* Now specify we want to POST data */ 
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    
-        /* we want to use our own read function */ 
-        curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    
-        /* pointer to pass to our read function */ 
-        curl_easy_setopt(curl, CURLOPT_READDATA, &wt);
-    
-        /* get verbose debug output please */ 
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    
-        /**
-         * Set Headers
-         */
-
-        struct curl_slist *chunk = NULL;
-    
-        chunk = curl_slist_append(chunk, TRANSFER);
-        chunk = curl_slist_append(chunk, CONTENT_TYPE);
-        chunk = curl_slist_append(chunk, ACCEPT);
-        chunk = curl_slist_append(chunk, EXPECT);
-        chunk = curl_slist_append(chunk, KEY1);
-
-        res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        /* use curl_slist_free_all() after the *perform() call to free this
-            list again */ 
-    
-        /* Perform the request, res will get the return code */ 
-        res = curl_easy_perform(curl);
-        /* Check for errors */ 
-        if(res != CURLE_OK)
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
-    
-        /* always cleanup */ 
-        curl_easy_cleanup(curl);
+    if(!curl) {
+        fprintf(stderr, "curl_easy_init() failed");
+        return cleanup(curl);
     }
-    curl_global_cleanup();
+    /* First set the URL that is about to receive our POST. */ 
+    curl_easy_setopt(curl, CURLOPT_URL, URI);
+
+    /* Now specify we want to POST data */ 
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
+    /* we want to use our own read function */ 
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+
+    /* pointer to pass to our read function */ 
+    curl_easy_setopt(curl, CURLOPT_READDATA, &wt);
+
+    /* get verbose debug output please */ 
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+    /**
+     * Set Headers
+     */
+
+    struct curl_slist *chunk = NULL;
+
+    chunk = curl_slist_append(chunk, TRANSFER);
+    chunk = curl_slist_append(chunk, CONTENT_TYPE);
+    chunk = curl_slist_append(chunk, ACCEPT);
+    chunk = curl_slist_append(chunk, EXPECT);
+    chunk = curl_slist_append(chunk, KEY1);
+
+    res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+    /* Perform the request, res will get the return code */ 
+    res = curl_easy_perform(curl);
+    /* Check for errors */ 
+    if(res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+        curl_easy_strerror(res));
+        return cleanup(curl);
+    }
+
+
+    /* always cleanup */ 
+    cleanup(curl);
 }
 
 char* get_raw_data(char* filename) {
