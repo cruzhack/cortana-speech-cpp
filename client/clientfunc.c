@@ -11,7 +11,7 @@ struct WriteThis {
 };
 
 void cleanup(CURL* curl){
-    if(curl != null) curl_easy_cleanup(curl);
+    if(curl != NULL) curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
 
